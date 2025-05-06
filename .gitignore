@@ -33,6 +33,7 @@ ENV/
 
 # Project specific
 .env
+data/processed/*
 data/raw/*
 !data/raw/.gitkeep
 model/checkpoints/*
