@@ -1,0 +1,3 @@
+-fine tune an LLM on iMessage chat.db
+-host privately (behind authentication)
+-have friends RLHF improve Savs.ai with emoji feedback
