@@ -199,6 +199,30 @@ def explore_chat_db(db_path):
         except Exception as e:
             print(f"Error analyzing top conversations: {e}")
 
+        # Oldest conversation
+        print("\n=== Oldest Conversation ===")
+        try:
+            query = """
+                SELECT
+                    c.display_name,
+                    datetime(MIN(m.date)/1000000000 + 978307200, 'unixepoch') as first_message_date,
+                    COUNT(cmj.message_id) as message_count
+                FROM chat c
+                JOIN chat_message_join cmj ON c.ROWID = cmj.chat_id
+                JOIN message m ON cmj.message_id = m.ROWID
+                GROUP BY c.ROWID
+                ORDER BY first_message_date ASC
+                LIMIT 1
+            """
+            oldest_chat = pd.read_sql_query(query, conn)
+
+            if not oldest_chat.empty:
+                print(f"Conversation: {oldest_chat['display_name'].iloc[0] or 'Unnamed Chat'}")
+                print(f"First message date: {oldest_chat['first_message_date'].iloc[0]}")
+                print(f"Total messages: {oldest_chat['message_count'].iloc[0]:,}")
+        except Exception as e:
+            print(f"Error analyzing oldest conversation: {e}")
+
         # Sample messages (just to see format)
         print("\n=== Sample Messages (5 most recent) ===")
         try:
