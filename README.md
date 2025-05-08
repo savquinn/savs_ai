@@ -1,79 +1,74 @@
-# Savs.ai
+# iMessage Data Processing Pipeline
 
-A personal AI assistant fine-tuned on your iMessage conversations.
+This project processes iMessage data from the chat.db file for training a personal chatbot. The pipeline handles incremental updates as new messages are synced to your Mac.
 
-## Project Structure
+## Directory Structure
 
 ```
-savs_ai/
-├── project_information/        # Project documentation
-├── data/                       # Data processing pipeline
-├── model/                      # Model training and fine-tuning
-├── server/                     # Backend server
-├── client/                     # Frontend
-├── feedback/                   # RLHF system
-├── utils/                      # Shared utilities
-├── tests/                      # Test suite
-└── docs/                       # Documentation
+data/
+├── raw/              # Raw data from chat.db
+├── processed/        # Cleaned and processed data
+├── training/         # Training and validation datasets
+└── scripts/          # Processing scripts
 ```
 
 ## Setup
 
-1. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-2. Install dependencies:
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configure environment variables:
-- Copy `.env.example` to `.env`
-- Fill in the required environment variables
+2. Ensure your chat.db file is accessible at `~/Library/Messages/chat.db`
 
-4. Set up pre-commit hooks:
+## Pipeline Steps
+
+The pipeline consists of three main steps:
+
+1. **Extract Raw Data** (`extract_raw.py`)
+   - Copies new messages from chat.db to raw_messages.db
+   - Tracks which messages have been processed
+   - Handles incremental updates
+
+2. **Clean Data** (`clean_data.py`)
+   - Cleans and processes messages from raw_messages.db
+   - Removes reactions, system messages, and media placeholders
+   - Groups messages into conversations
+   - Stores cleaned data in cleaned_messages.db
+
+3. **Prepare Training Data** (`prepare_training.py`)
+   - Creates training and validation datasets
+   - Formats conversations for fine-tuning
+   - Outputs JSONL files for training
+
+## Usage
+
+Run the pipeline steps in order:
+
 ```bash
-pre-commit install
+# Extract new messages
+python data/scripts/extract_raw.py
+
+# Clean the messages
+python data/scripts/clean_data.py
+
+# Prepare training data
+python data/scripts/prepare_training.py
 ```
 
-## Development
+You can run these steps periodically as new messages sync to your Mac. Each step tracks its progress and only processes new data.
 
-- Data processing scripts are in `data/scripts/`
-- Model training code is in `model/`
-- Server code is in `server/`
-- Client code is in `client/`
+## Output
 
-### Code Quality
+The final training data will be in `data/training/`:
+- `train.jsonl`: Training dataset
+- `validation.jsonl`: Validation dataset
+- `metadata.json`: Dataset statistics and creation info
 
-The project uses several tools to maintain code quality:
+## Notes
 
-- **Black**: Code formatting
-- **isort**: Import sorting
-- **flake8**: Linting
-- **mypy**: Static type checking
-
-These tools run automatically on each commit. You can also run them manually:
-
-```bash
-# Format code
-black .
-isort .
-
-# Run linters
-flake8
-mypy .
-```
-
-## Testing
-
-Run tests with:
-```bash
-python -m pytest tests/
-```
-
-## Documentation
-
-See `docs/` for detailed documentation about the project.
+- The pipeline is designed to handle incremental updates
+- Each step maintains its own progress tracking
+- Data is stored in SQLite databases for efficient querying
+- The cleaning step removes reactions, system messages, and media placeholders
+- Training data is formatted for fine-tuning a personal chatbot
